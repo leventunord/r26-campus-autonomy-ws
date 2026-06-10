@@ -1,5 +1,5 @@
 # Bringup launch for Hunter SE robot - no IMU, no RViz
-# 启动小车底盘（轮式里程计）、URDF、禾赛雷达、点云转 LaserScan、静态 TF
+# 启动小车底盘（轮式里程计）、URDF、禾赛雷达、点云转 LaserScan、USB 摄像头、鱼眼拼接、静态 TF
 import os
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
@@ -63,6 +63,24 @@ def generate_launch_description():
         name='pointcloud_to_laserscan'
     )
 
+    # 启动 USB 摄像头 (Insta360 Air)
+    usb_cam_dir = get_package_share_directory('usb_cam')
+    usb_cam_launch = Node(
+        package='usb_cam',
+        executable='usb_cam_node_exe',
+        name='usb_cam',
+        parameters=[os.path.join(usb_cam_dir, 'config', 'params_1.yaml')],
+        output='log',
+    )
+
+    # 启动鱼眼全景拼接节点 (Insta360 Air → 全景图)
+    fisheye_stitcher_launch = Node(
+        package='fisheye_process',
+        executable='fisheye_stitch',
+        name='fisheye_stitcher',
+        output='log',
+    )
+
     # 静态 TF: base_link -> hesai_lidar
     tf_node = Node(
         package='tf2_ros',
@@ -81,4 +99,6 @@ def generate_launch_description():
         hesai_launch,
         tf_node,
         pointcloud_to_laserscan_launch,
+        usb_cam_launch,
+        fisheye_stitcher_launch,
     ])
