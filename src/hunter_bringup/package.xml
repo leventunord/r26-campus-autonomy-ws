@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>hunter_bringup</name>
+  <version>0.1.0</version>
+  <description>Bringup launch files for Hunter SE robot (no IMU, no RViz)</description>
+  <maintainer email="agilex03@todo.todo">agilex03</maintainer>
+  <license>BSD</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <exec_depend>hunter_base</exec_depend>
+  <exec_depend>hunter_se_description</exec_depend>
+  <exec_depend>hesai_ros_driver</exec_depend>
+  <exec_depend>pointcloud_to_laserscan</exec_depend>
+  <exec_depend>tf2_ros</exec_depend>
+  <exec_depend>robot_state_publisher</exec_depend>
+  <exec_depend>joint_state_publisher</exec_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>
