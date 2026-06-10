@@ -81,6 +81,16 @@ def generate_launch_description():
         output='log',
     )
 
+    # 启动 YOLOv11 人物识别节点
+    yolo_person_detection_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(
+                get_package_share_directory('yolo_person_detection'),
+                'launch', 'yolo_person_detection.launch.py'
+            )
+        )
+    )
+
     # 静态 TF: base_link -> hesai_lidar
     tf_node = Node(
         package='tf2_ros',
@@ -101,4 +111,5 @@ def generate_launch_description():
         pointcloud_to_laserscan_launch,
         usb_cam_launch,
         fisheye_stitcher_launch,
+        yolo_person_detection_launch,
     ])
