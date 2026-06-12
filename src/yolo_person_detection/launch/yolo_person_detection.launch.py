@@ -13,7 +13,7 @@ def generate_launch_description():
             parameters=[{
                 'model_path': 'yolo11n_openvino_model',
                 'image_topic': '/image_stitched',
-                'device': 'cpu',
+                'device': 'gpu',
                 'conf_threshold': 0.5,
                 'iou_threshold': 0.45
             }]

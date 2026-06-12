@@ -25,7 +25,7 @@ class YoloPersonDetector(Node):
         self.iou = self.get_parameter('iou_threshold').get_parameter_value().double_value
         
         self.get_logger().info(f'Loading model: {model_path} on {self.device}')
-        self.model = YOLO(model_path)
+        self.model = YOLO(model_path, task='detect')
         
         self.bridge = CvBridge()
         
