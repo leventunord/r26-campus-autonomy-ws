@@ -21,7 +21,7 @@ bash bringup_can2usb_500k.bash
 
 # 加载 ROS 2 工作空间环境
 cd "$WS_DIR" || exit
-source install/setup.zsh
+source install/setup.bash
 
 # 创建日志目录
 mkdir -p "$WS_DIR/bringup_log"
