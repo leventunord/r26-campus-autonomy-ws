@@ -11,7 +11,7 @@ def generate_launch_description():
             name='yolo_person_detector',
             output='screen',
             parameters=[{
-                'model_path': 'yolo11n.pt',
+                'model_path': 'yolo11n_openvino_model',
                 'image_topic': '/image_stitched',
                 'device': 'cpu',
                 'conf_threshold': 0.5,
