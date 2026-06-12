@@ -40,9 +40,16 @@ class YoloPersonDetector(Node):
         self.detection_pub = self.create_publisher(Detection2DArray, '/yolo/detections', 10)
         self.image_pub = self.create_publisher(Image, '/yolo/annotated_image', 10)
         
+        # Added for optimization: frame counter
+        self.frame_count = 0
         self.get_logger().info('YOLO Person Detector Node started')
 
     def image_callback(self, msg):
+        self.frame_count += 1
+        # Optimization 1: Frame skipping (process 1 out of 3 frames, reducing 30fps to ~10fps)
+        if self.frame_count % 3 != 0:
+            return
+
         try:
             cv_image = self.bridge.imgmsg_to_cv2(msg, desired_encoding='bgr8')
         except Exception as e:
@@ -56,6 +63,7 @@ class YoloPersonDetector(Node):
             iou=self.iou,
             device=self.device,
             classes=[0],  # 0 is person in COCO
+            imgsz=640,    # Optimization 2: Fixed inference resolution to drastically reduce computation
             verbose=False
         )
         
@@ -68,6 +76,9 @@ class YoloPersonDetector(Node):
         
         # Annotated image
         annotated_frame = res.plot()
+        
+        # Optimization 3: Resize annotated frame (to 960x480) before publishing to save DDS bandwidth
+        annotated_frame = cv2.resize(annotated_frame, (960, 480))
         
         # Process detections
         for box in res.boxes:
