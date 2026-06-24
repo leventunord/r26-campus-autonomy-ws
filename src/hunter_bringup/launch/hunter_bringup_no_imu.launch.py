@@ -91,6 +91,24 @@ def generate_launch_description():
         )
     )
 
+    # 启动行人位置融合节点
+    pedestrian_position_fusion_launch = Node(
+        package='pedestrian_position_fusion',
+        executable='position_fusion_node',
+        name='position_fusion_node',
+        output='screen'
+    )
+
+    # 启动行人轨迹预测节点
+    pedestrian_trajectory_prediction_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(
+                get_package_share_directory('pedestrian_trajectory_prediction'),
+                'launch', 'pedestrian_prediction.launch.py'
+            )
+        )
+    )
+
     # 静态 TF: base_link -> hesai_lidar
     tf_node = Node(
         package='tf2_ros',
@@ -112,4 +130,6 @@ def generate_launch_description():
         usb_cam_launch,
         fisheye_stitcher_launch,
         yolo_person_detection_launch,
+        pedestrian_position_fusion_launch,
+        pedestrian_trajectory_prediction_launch,
     ])
