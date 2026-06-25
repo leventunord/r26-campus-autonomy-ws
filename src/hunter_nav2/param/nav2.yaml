@@ -227,8 +227,8 @@ local_costmap:
       width: 28
       height: 28
       resolution: 0.05
-      # 外接圆半径，底盘 820x640mm → 对角线/2 ≈ 0.52m，取 0.42m 留余量
-      robot_radius: 0.42
+      # 底盘尺寸 820x640mm，使用精确的多边形 footprint 替代 robot_radius 避免在狭窄处误报碰撞
+      footprint: "[[-0.41, -0.32], [-0.41, 0.32], [0.41, 0.32], [0.41, -0.32]]"
       plugins: ["obstacle_layer", "pedestrian_layer", "inflation_layer"]
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
@@ -272,7 +272,7 @@ global_costmap:
       publish_frequency: 1.0
       global_frame: map
       robot_base_frame: base_link
-      robot_radius: 0.42
+      footprint: "[[-0.41, -0.32], [-0.41, 0.32], [0.41, 0.32], [0.41, -0.32]]"
       resolution: 0.05
       track_unknown_space: true
       plugins: ["static_layer", "obstacle_layer", "inflation_layer"]
