@@ -6,7 +6,7 @@ from launch.actions import ExecuteProcess, IncludeLaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 
 def generate_launch_description():
-    bag_path = '/home/agilex03/r26-campus-autonomy-ws/data/amcl_tracking_dataset'
+    bag_path = '/home/agilex03/r26-campus-autonomy-ws/data/image_lidar'
     rviz_config = '/home/agilex03/r26-campus-autonomy-ws/test_costmap.rviz'
     nav2_params_file = '/home/agilex03/r26-campus-autonomy-ws/src/hunter_nav2/param/nav2.yaml'
 
@@ -29,9 +29,9 @@ def generate_launch_description():
         ExecuteProcess(
             cmd=[
                 'ros2', 'bag', 'play', bag_path, '--clock', 
-                '--remap', 
-                '/yolo/person_directions:=/yolo/person_directions_old',
-                '/yolo/detections:=/yolo/detections_old'
+                # '--remap', 
+                # '/yolo/person_directions:=/yolo/person_directions_old',
+                # '/yolo/detections:=/yolo/detections_old'
             ],
             output='screen'
         ),
