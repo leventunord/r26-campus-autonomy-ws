@@ -25,9 +25,14 @@ def generate_launch_description():
     )
 
     return LaunchDescription([
-        # 播放 ROS 2 Bag 文件，排除包中已录制的 yolo 相关话题，并发布时钟(--clock)以支持 use_sim_time
+        # 播放 ROS 2 Bag 文件，并发布时钟(--clock)以支持 use_sim_time，通过 remap 避免与新节点话题冲突
         ExecuteProcess(
-            cmd=['ros2', 'bag', 'play', bag_path, '--clock', '-x', '/yolo/.*'],
+            cmd=[
+                'ros2', 'bag', 'play', bag_path, '--clock', 
+                '--remap', 
+                '/yolo/person_directions:=/yolo/person_directions_old',
+                '/yolo/detections:=/yolo/detections_old'
+            ],
             output='screen'
         ),
 
