@@ -1,0 +1,7 @@
+<library path="pedestrian_mppi_critic">
+  <class type="mppi::critics::DynamicObstacleCritic" base_class_type="mppi::critics::CriticFunction">
+    <description>
+      Critic to score trajectories based on spatio-temporal distance to predicted pedestrian positions.
+    </description>
+  </class>
+</library>

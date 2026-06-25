@@ -157,13 +157,7 @@ controller_server:
       critics: [
         "ConstraintCritic", "CostCritic", "GoalCritic",
         "GoalAngleCritic", "PathAlignCritic", "PathFollowCritic",
-        "PathAngleCritic", "PreferForwardCritic", "DynamicObstacleCritic"]
-      DynamicObstacleCritic:
-        enabled: true
-        cost_power: 1
-        cost_weight: 15.0
-        safe_distance: 1.0
-        topic_name: "/pedestrian/predicted_poses"
+        "PathAngleCritic", "PreferForwardCritic"]
       ConstraintCritic:
         enabled: true
         cost_power: 1
@@ -258,7 +252,7 @@ local_costmap:
         current_radius: 0.15
         predicted_radius: 0.35
         current_cost: 254
-        predicted_cost: 0
+        predicted_cost: 200
         time_decay_factor: 0.5
         radius_expansion_rate: 0.05
         msg_timeout: 1.5
