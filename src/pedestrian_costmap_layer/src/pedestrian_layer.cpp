@@ -148,8 +148,12 @@ void PedestrianLayer::addPoseArrayToPoints(
     unsigned char c = base_cost;
 
     if (is_predicted) {
-      // 假设每条轨迹固定 8 个预测点，时间间隔 0.5 秒
-      double t = ((i % 8) + 1) * 0.5;
+      // 从输入消息的 Z 坐标中提取预测时间 t
+      double t = msg->poses[i].position.z;
+      // 容错处理：如果上游未正确设置 z，则给一个默认值
+      if (t <= 0.0) {
+        t = 0.5;
+      }
       
       // 代价按时间指数衰减
       double decayed_cost = static_cast<double>(base_cost) * std::exp(-time_decay_factor_ * t);

@@ -20,7 +20,6 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'pedestrian_dynamic_costmap = pedestrian_trajectory_prediction.dynamic_costmap_node:main',
             'pedestrian_prediction_node = pedestrian_trajectory_prediction.pedestrian_prediction_node:main',
         ],
     },

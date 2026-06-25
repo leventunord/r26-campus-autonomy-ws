@@ -676,11 +676,11 @@ class PedestrianPredictionNode(Node):
 
             # ── 预测轨迹 ────────────────────────────────────────────
             future_positions = self._predict_trajectory(track)
-            for (fpx, fpy) in future_positions:
+            for k, (fpx, fpy) in enumerate(future_positions):
                 ppose = Pose()
                 ppose.position.x     = fpx
                 ppose.position.y     = fpy
-                ppose.position.z     = 0.0
+                ppose.position.z     = float((k + 1) * self._pred_dt)  # 将时间步存入 z，供 downstream layer 计算衰减
                 ppose.orientation.x  = 0.0
                 ppose.orientation.y  = 0.0
                 ppose.orientation.z  = math.sin(yaw / 2.0)
