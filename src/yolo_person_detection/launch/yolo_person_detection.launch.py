@@ -16,16 +16,9 @@ def generate_launch_description():
                 'image_topic': '/image_stitched',
                 'device': 'cpu',
                 'conf_threshold': 0.5,
-                'iou_threshold': 0.45
-            }]
-        ),
-        Node(
-            package='yolo_person_detection',
-            executable='person_direction_node',
-            name='person_direction_node',
-            output='screen',
-            parameters=[{
-                'yaw_offset': 0.0
+                'iou_threshold': 0.45,
+                'image_width': 3840,
+                'yaw_offset': 0.0,
             }]
         )
     ])

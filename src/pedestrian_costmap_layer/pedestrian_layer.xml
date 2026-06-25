@@ -1,0 +1,10 @@
+<library path="pedestrian_layer">
+  <class
+    name="pedestrian_costmap_layer::PedestrianLayer"
+    type="pedestrian_costmap_layer::PedestrianLayer"
+    base_class_type="nav2_costmap_2d::Layer">
+    <description>
+      Pedestrian prediction costmap layer for Nav2.
+    </description>
+  </class>
+</library>

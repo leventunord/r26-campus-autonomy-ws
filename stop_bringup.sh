@@ -26,7 +26,7 @@ fi
 # 2. 精准清理：只杀掉本项目特有的执行文件名
 # 这样即使 launch 挂了，这些特定的子进程也不会变成“孤儿”霸占资源
 echo "-> 检查并清理残留的感知与驱动节点..."
-SPECIFIC_NODES=("usb_cam_node_exe" "yolo_node" "fisheye_stitch" "hesai_ros_driver" "hunter_base_node")
+SPECIFIC_NODES=("usb_cam_node_exe" "yolo_node" "fisheye_stitch" "hesai_ros_driver" "hunter_base_node" "position_fusion_node" "pedestrian_prediction_node" "person_direction_node" "pointcloud_to_laserscan_node" "robot_state_publisher" "joint_state_publisher" "static_transform_publisher")
 for node in "${SPECIFIC_NODES[@]}"; do
     pkill -9 -f "$node" 2>/dev/null
 done

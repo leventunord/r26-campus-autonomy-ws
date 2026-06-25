@@ -62,6 +62,7 @@ class PedestrianPredictionNode(Node):
 
         # Tracking / prediction parameters
         self.declare_parameter('association_distance', 1.2)
+        self.declare_parameter('association_angle', 0.15)
         self.declare_parameter('track_timeout', 1.5)
         self.declare_parameter('history_length', 10)
         self.declare_parameter('prediction_horizon', 4.0)
@@ -69,8 +70,11 @@ class PedestrianPredictionNode(Node):
         self.declare_parameter('velocity_smoothing', 0.35)
         self.declare_parameter('max_prediction_speed', 2.0)
 
-        # Basic speed threshold for valid motion direction
         self.declare_parameter('min_direction_speed', 0.1)
+
+        # Smoothing & Output Rate
+        self.declare_parameter('position_deadband', 0.3)
+        self.declare_parameter('output_fps', 2.0)
 
         # RViz arrow length
         self.declare_parameter('arrow_length', 0.8)
@@ -79,6 +83,7 @@ class PedestrianPredictionNode(Node):
         self.output_frame = self.get_parameter('output_frame').value
 
         self.association_distance = float(self.get_parameter('association_distance').value)
+        self.association_angle = float(self.get_parameter('association_angle').value)
         self.track_timeout = float(self.get_parameter('track_timeout').value)
         self.history_length = int(self.get_parameter('history_length').value)
         self.prediction_horizon = float(self.get_parameter('prediction_horizon').value)
@@ -87,6 +92,8 @@ class PedestrianPredictionNode(Node):
         self.max_prediction_speed = float(self.get_parameter('max_prediction_speed').value)
         self.min_direction_speed = float(self.get_parameter('min_direction_speed').value)
         self.arrow_length = float(self.get_parameter('arrow_length').value)
+        self.position_deadband = float(self.get_parameter('position_deadband').value)
+        self.output_fps = float(self.get_parameter('output_fps').value)
 
         self.tracks: Dict[int, Track] = {}
         self.next_track_id = 1
@@ -115,22 +122,23 @@ class PedestrianPredictionNode(Node):
             10,
         )
 
-        self.pred_flat_pub = self.create_publisher(
-            Float32MultiArray,
-            '/pedestrian/predictions_flat',
-            10,
-        )
-
-        self.marker_pub = self.create_publisher(
-            MarkerArray,
-            '/pedestrian/trajectory_markers',
-            10,
-        )
-
         self.get_logger().info(
             'PedestrianPredictionNode started: '
             f'{self.detected_poses_topic} -> /pedestrian/* in {self.output_frame}'
         )
+
+        # Output timer (decoupled from input frequency)
+        self.output_timer = self.create_timer(
+            1.0 / self.output_fps,
+            self.publish_outputs_timer_cb
+        )
+
+    def _angle_diff(self, a: float, b: float) -> float:
+        return math.atan2(math.sin(a - b), math.cos(a - b))
+
+    def publish_outputs_timer_cb(self):
+        # Publish at a fixed rate, completely masking input flicker
+        self.publish_outputs(self.get_clock().now().to_msg())
 
     def ros_time_to_sec(self, stamp) -> float:
         return float(stamp.sec) + float(stamp.nanosec) * 1e-9
@@ -150,10 +158,10 @@ class PedestrianPredictionNode(Node):
                 self.output_frame,
                 source_frame,
                 msg.header.stamp,
-                rclpy.duration.Duration(seconds=0.1)
+                rclpy.duration.Duration(seconds=0.05)
             )
-        except tf2_ros.TransformException as ex:
-            self.get_logger().warn(f'Could not transform {source_frame} to {self.output_frame}: {ex}')
+        except tf2_ros.TransformException:
+            # 离线 Bag 回放时偶尔会出现时间戳对不上的情况，直接静默跳过该帧，不要用最新的 TF（会导致坐标剧烈抖动）
             return
 
         measurements: List[Tuple[float, float, float, float]] = []
@@ -176,7 +184,6 @@ class PedestrianPredictionNode(Node):
 
         self.update_tracks(measurements, now_sec)
         self.prune_stale_tracks(now_sec)
-        self.publish_outputs(msg.header.stamp)
 
     def update_tracks(
         self,
@@ -187,19 +194,39 @@ class PedestrianPredictionNode(Node):
 
         for mx, my, mz, myaw in measurements:
             best_id = None
-            best_dist = float('inf')
+            best_score = float('inf')
 
             for tid in list(unmatched_tracks):
                 tx, ty, _ = self.tracks[tid].position
                 dist = math.hypot(mx - tx, my - ty)
+                
+                # myaw and track.yaw are the absolute line-of-sight angles in odom frame
+                angle_diff = abs(self._angle_diff(myaw, self.tracks[tid].yaw))
 
-                if dist < best_dist:
-                    best_dist = dist
-                    best_id = tid
+                # Match if spatially close OR angularly in the same direction
+                if dist <= self.association_distance or angle_diff <= self.association_angle:
+                    # Prefer tracks that are spatially close
+                    score = dist + angle_diff * 5.0
+                    if score < best_score:
+                        best_score = score
+                        best_id = tid
 
-            if best_id is not None and best_dist <= self.association_distance:
+            if best_id is not None:
                 track = self.tracks[best_id]
-                track.history.append((stamp_sec, mx, my, mz))
+                tx, ty, _ = track.position
+                dist = math.hypot(mx - tx, my - ty)
+                
+                if dist <= self.association_distance:
+                    # ── Spatial deadband: ignore tiny movements ──
+                    if dist >= self.position_deadband:
+                        track.history.append((stamp_sec, mx, my, mz))
+                else:
+                    # ── Glitch Absorption ──
+                    # Matched purely by angle but distance jumped wildly. 
+                    # Do nothing to history. Silently swallow the background glitch.
+                    pass
+                
+                # Always update liveness and yaw
                 track.last_update = stamp_sec
                 track.missed = 0
                 track.yaw = myaw
@@ -354,196 +381,8 @@ class PedestrianPredictionNode(Node):
                     float(vy),
                 ])
 
-            markers.markers.extend(
-                self.make_track_markers(tid, track, preds, marker_id, stamp)
-            )
-
-            marker_id += 100
-
         self.current_pose_pub.publish(current)
         self.pred_pose_pub.publish(predicted)
-        self.pred_flat_pub.publish(flat)
-        self.marker_pub.publish(markers)
-
-    def make_track_markers(
-        self,
-        tid: int,
-        track: Track,
-        preds: List[Tuple[float, float, float]],
-        base_id: int,
-        stamp
-    ) -> List[Marker]:
-        x, y, _ = track.position
-        detection_yaw = track.yaw
-        motion_yaw = track.motion_yaw if track.direction_valid else track.yaw
-
-        out: List[Marker] = []
-
-        current = Marker()
-        current.header.frame_id = self.output_frame
-        current.header.stamp = stamp
-        current.ns = 'pedestrian_current'
-        current.id = base_id
-        current.type = Marker.SPHERE
-        current.action = Marker.ADD
-        current.pose.position.x = x
-        current.pose.position.y = y
-        current.pose.position.z = 0.35
-        current.pose.orientation.x = 0.0
-        current.pose.orientation.y = 0.0
-        current.pose.orientation.z = math.sin(detection_yaw / 2.0)
-        current.pose.orientation.w = math.cos(detection_yaw / 2.0)
-        current.scale.x = 0.35
-        current.scale.y = 0.35
-        current.scale.z = 0.7
-        current.color.a = 0.9
-        current.color.r = 0.1
-        current.color.g = 0.7
-        current.color.b = 1.0
-        out.append(current)
-
-        direction = Marker()
-        direction.header.frame_id = self.output_frame
-        direction.header.stamp = stamp
-        direction.ns = 'pedestrian_detection_direction'
-        direction.id = base_id + 1
-        direction.type = Marker.ARROW
-        direction.action = Marker.ADD
-        direction.scale.x = 0.08
-        direction.scale.y = 0.18
-        direction.scale.z = 0.25
-        direction.color.a = 1.0
-        direction.color.r = 1.0
-        direction.color.g = 0.2
-        direction.color.b = 0.0
-
-        p_start = Point()
-        p_start.x = x
-        p_start.y = y
-        p_start.z = 0.35
-
-        p_end = Point()
-        p_end.x = x + self.arrow_length * math.cos(detection_yaw)
-        p_end.y = y + self.arrow_length * math.sin(detection_yaw)
-        p_end.z = 0.35
-
-        direction.points.append(p_start)
-        direction.points.append(p_end)
-
-        if not track.direction_valid:
-            direction.color.a = 0.35
-            direction.scale.x = 0.04
-            direction.scale.y = 0.10
-            direction.scale.z = 0.15
-            direction.points[1].x = x + 0.35 * math.cos(detection_yaw)
-            direction.points[1].y = y + 0.35 * math.sin(detection_yaw)
-
-        out.append(direction)
-
-        text = Marker()
-        text.header.frame_id = self.output_frame
-        text.header.stamp = stamp
-        text.ns = 'pedestrian_id'
-        text.id = base_id + 2
-        text.type = Marker.TEXT_VIEW_FACING
-        text.action = Marker.ADD
-        text.pose.position.x = x
-        text.pose.position.y = y
-        text.pose.position.z = 1.2
-        text.pose.orientation.w = 1.0
-        text.scale.z = 0.25
-        text.color.a = 1.0
-        text.color.r = 1.0
-        text.color.g = 1.0
-        text.color.b = 1.0
-        text.text = f'ID {tid}\nv={track.speed:.2f} m/s'
-        out.append(text)
-
-        hist = Marker()
-        hist.header.frame_id = self.output_frame
-        hist.header.stamp = stamp
-        hist.ns = 'pedestrian_history'
-        hist.id = base_id + 3
-        hist.type = Marker.LINE_STRIP
-        hist.action = Marker.ADD
-        hist.scale.x = 0.05
-        hist.color.a = 0.8
-        hist.color.r = 0.2
-        hist.color.g = 1.0
-        hist.color.b = 0.2
-
-        for _, hx, hy, _ in track.history:
-            p = Point()
-            p.x = hx
-            p.y = hy
-            p.z = 0.15
-            hist.points.append(p)
-
-        out.append(hist)
-
-        fut = Marker()
-        fut.header.frame_id = self.output_frame
-        fut.header.stamp = stamp
-        fut.ns = 'pedestrian_prediction'
-        fut.id = base_id + 4
-        fut.type = Marker.SPHERE_LIST
-        fut.action = Marker.ADD
-        fut.scale.x = 0.15
-        fut.scale.y = 0.15
-        fut.scale.z = 0.15
-        fut.color.a = 0.9
-        fut.color.r = 1.0
-        fut.color.g = 0.8
-        fut.color.b = 0.0
-
-        p0 = Point()
-        p0.x = x
-        p0.y = y
-        p0.z = 0.35
-        fut.points.append(p0)
-
-        for _, px, py in preds:
-            p = Point()
-            p.x = px
-            p.y = py
-            p.z = 0.35
-            fut.points.append(p)
-
-        out.append(fut)
-
-        if preds:
-            _, last_x, last_y = preds[-1]
-
-            pred_arrow = Marker()
-            pred_arrow.header.frame_id = self.output_frame
-            pred_arrow.header.stamp = stamp
-            pred_arrow.ns = 'pedestrian_motion_prediction_arrow'
-            pred_arrow.id = base_id + 5
-            pred_arrow.type = Marker.ARROW
-            pred_arrow.action = Marker.ADD
-            pred_arrow.scale.x = 0.05
-            pred_arrow.scale.y = 0.14
-            pred_arrow.scale.z = 0.20
-            pred_arrow.color.a = 0.8
-            pred_arrow.color.r = 1.0
-            pred_arrow.color.g = 0.8
-            pred_arrow.color.b = 0.0
-
-            ps = Point()
-            ps.x = x
-            ps.y = y
-            ps.z = 0.35
-
-            pe = Point()
-            pe.x = last_x
-            pe.y = last_y
-            pe.z = 0.35
-
-            pred_arrow.points.append(ps)
-            pred_arrow.points.append(pe)
-            out.append(pred_arrow)
-
-        return out
 
 
 def main(args=None):

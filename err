@@ -1,0 +1,36 @@
+[component_container_isolated-1] [INFO] [1782308542.110843402] [planner_server]: Creating bond (planner_server) to lifecycle manager.
+[component_container_isolated-1] [INFO] [1782308542.217138897] [lifecycle_manager_navigation]: Server planner_server connected with bond.
+[component_container_isolated-1] [INFO] [1782308542.217189010] [lifecycle_manager_navigation]: Activating behavior_server
+[component_container_isolated-1] [INFO] [1782308542.217471704] [behavior_server]: Activating
+[component_container_isolated-1] [INFO] [1782308542.217494034] [behavior_server]: Activating spin
+[component_container_isolated-1] [INFO] [1782308542.217519967] [behavior_server]: Activating backup
+[component_container_isolated-1] [INFO] [1782308542.217531661] [behavior_server]: Activating drive_on_heading
+[component_container_isolated-1] [INFO] [1782308542.217543571] [behavior_server]: Activating assisted_teleop
+[component_container_isolated-1] [INFO] [1782308542.217555700] [behavior_server]: Activating wait
+[component_container_isolated-1] [INFO] [1782308542.217570694] [behavior_server]: Creating bond (behavior_server) to lifecycle manager.
+[component_container_isolated-1] [INFO] [1782308542.322345765] [lifecycle_manager_navigation]: Server behavior_server connected with bond.
+[component_container_isolated-1] [INFO] [1782308542.322389559] [lifecycle_manager_navigation]: Activating bt_navigator
+[component_container_isolated-1] [INFO] [1782308542.322868509] [bt_navigator]: Activating
+[component_container_isolated-1] [INFO] [1782308542.415793158] [bt_navigator]: Creating bond (bt_navigator) to lifecycle manager.
+[component_container_isolated-1] [INFO] [1782308542.521916366] [lifecycle_manager_navigation]: Server bt_navigator connected with bond.
+[component_container_isolated-1] [INFO] [1782308542.521957849] [lifecycle_manager_navigation]: Activating waypoint_follower
+[component_container_isolated-1] [INFO] [1782308542.522266650] [waypoint_follower]: Activating
+[component_container_isolated-1] [INFO] [1782308542.522308169] [waypoint_follower]: Creating bond (waypoint_follower) to lifecycle manager.
+[component_container_isolated-1] [INFO] [1782308542.630123028] [lifecycle_manager_navigation]: Server waypoint_follower connected with bond.
+[component_container_isolated-1] [INFO] [1782308542.630185319] [lifecycle_manager_navigation]: Activating velocity_smoother
+[component_container_isolated-1] [INFO] [1782308542.630556511] [velocity_smoother]: Activating
+[component_container_isolated-1] [INFO] [1782308542.630606690] [velocity_smoother]: Creating bond (velocity_smoother) to lifecycle manager.
+[component_container_isolated-1] [INFO] [1782308542.737061700] [lifecycle_manager_navigation]: Server velocity_smoother connected with bond.
+[component_container_isolated-1] [INFO] [1782308542.737100349] [lifecycle_manager_navigation]: Managed nodes are active
+[component_container_isolated-1] [INFO] [1782308542.737109770] [lifecycle_manager_navigation]: Creating bond timer...
+[rviz2-2] [INFO] [1782308569.444730033] [rviz2]: Setting estimate pose: Frame:map, Position(-0.631061, 0.0239081, 0), Orientation(0, 0, 0.10614, 0.994351) = Angle: 0.21268
+[component_container_isolated-1] [INFO] [1782308569.444980801] [amcl]: initialPoseReceived
+[component_container_isolated-1] [WARN] [1782308569.445058233] [amcl]: Failed to transform initial pose in time (Lookup would require extrapolation into the future.  Requested time 1782308569.445017 but the latest data is at time 1782308569.425622, when looking up transform from frame [base_link] to frame [odom])
+[component_container_isolated-1] [INFO] [1782308569.445069966] [amcl]: Setting pose (1782308569.445070): -0.631 0.024 0.213
+[rviz2-2] [INFO] [1782308576.004693545] [rviz2]: Setting goal pose: Frame:map, Position(11.5149, 1.06793, 0), Orientation(0, 0, 0.087241, 0.996187) = Angle: 0.174704
+[component_container_isolated-1] [INFO] [1782308576.005293745] [bt_navigator]: Begin navigating from current location (-0.65, -0.14) to (11.51, 1.07)
+[component_container_isolated-1] [WARN] [1782308576.009089976] [planner_server]: GridBased plugin failed to plan from (-0.65, -0.14) to (11.51, 1.07): Start was in lethal cost
+[component_container_isolated-1] [WARN] [1782308576.009539411] [planner_server]: [compute_path_to_pose] [ActionServer] Aborting handle.
+[component_container_isolated-1] [ERROR] [1782308576.035491111] [bt_navigator]: Goal failed
+[component_container_isolated-1] [WARN] [1782308576.035602159] [bt_navigator]: [navigate_to_pose] [ActionServer] Aborting handle.
+

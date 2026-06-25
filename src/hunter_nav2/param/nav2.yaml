@@ -223,11 +223,11 @@ local_costmap:
       resolution: 0.05
       # 外接圆半径，底盘 820x640mm → 对角线/2 ≈ 0.52m，取 0.42m 留余量
       robot_radius: 0.42
-      plugins: ["obstacle_layer", "inflation_layer"]
+      plugins: ["obstacle_layer", "pedestrian_layer", "inflation_layer"]
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
-        cost_scaling_factor: 1.5
-        inflation_radius: 0.75
+        cost_scaling_factor: 10.0
+        inflation_radius: 0.50
       obstacle_layer:
         plugin: "nav2_costmap_2d::ObstacleLayer"
         enabled: True
@@ -244,6 +244,19 @@ local_costmap:
           raytrace_min_range: 0.25
           obstacle_max_range: 3.5
           obstacle_min_range: 0.3
+      pedestrian_layer:
+        plugin: "pedestrian_costmap_layer::PedestrianLayer"
+        enabled: true
+        current_topic: "/pedestrian/current_poses"
+        predicted_topic: "/pedestrian/predicted_poses"
+        current_radius: 0.15
+        predicted_radius: 0.35
+        current_cost: 254
+        predicted_cost: 200
+        time_decay_factor: 0.5
+        radius_expansion_rate: 0.05
+        msg_timeout: 1.5
+        transform_tolerance: 0.2
       always_send_full_costmap: True
 
 global_costmap:
@@ -272,13 +285,26 @@ global_costmap:
           raytrace_min_range: 0.25
           obstacle_max_range: 3.5
           obstacle_min_range: 0.3
+      pedestrian_layer:
+        plugin: "pedestrian_costmap_layer::PedestrianLayer"
+        enabled: true
+        current_topic: "/pedestrian/current_poses"
+        predicted_topic: "/pedestrian/predicted_poses"
+        current_radius: 0.15
+        predicted_radius: 0.35
+        current_cost: 254
+        predicted_cost: 200
+        time_decay_factor: 0.5
+        radius_expansion_rate: 0.05
+        msg_timeout: 1.5
+        transform_tolerance: 0.2
       static_layer:
         plugin: "nav2_costmap_2d::StaticLayer"
         map_subscribe_transient_local: True
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
-        cost_scaling_factor: 1.5
-        inflation_radius: 0.75
+        cost_scaling_factor: 10.0
+        inflation_radius: 0.50
       always_send_full_costmap: True
 
 # map_server 的 yaml_filename 由 launch 文件通过 map 参数传入

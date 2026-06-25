@@ -1,0 +1,39 @@
+calibration_points:
+- error_deg: 11.4
+  linear_yaw_deg: -123.6
+  pixel_x: 2989.2
+  true_yaw_deg: -135
+  true_yaw_rad: -2.356194
+- error_deg: -1.0
+  linear_yaw_deg: -91.0
+  pixel_x: 2667.8
+  true_yaw_deg: -90
+  true_yaw_rad: -1.570796
+- error_deg: -18.2
+  linear_yaw_deg: -63.2
+  pixel_x: 2394.4
+  true_yaw_deg: -45
+  true_yaw_rad: -0.785398
+- error_deg: -2.6
+  linear_yaw_deg: -2.6
+  pixel_x: 1797.5
+  true_yaw_deg: 0
+  true_yaw_rad: 0.0
+- error_deg: 1.8
+  linear_yaw_deg: 46.8
+  pixel_x: 1310.9
+  true_yaw_deg: 45
+  true_yaw_rad: 0.785398
+- error_deg: -0.9
+  linear_yaw_deg: 89.1
+  pixel_x: 895.2
+  true_yaw_deg: 90
+  true_yaw_rad: 1.570796
+- error_deg: -9.4
+  linear_yaw_deg: 125.6
+  pixel_x: 535.6
+  true_yaw_deg: 135
+  true_yaw_rad: 2.356194
+crop_left: 480
+crop_right: 480
+image_width: 3544

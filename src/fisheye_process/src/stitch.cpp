@@ -3,7 +3,6 @@
 #include "rclcpp/rclcpp.hpp"
 #include "sensor_msgs/msg/image.hpp"
 #include "cv_bridge/cv_bridge.hpp"
-#include <image_transport/image_transport.hpp>
 #include <ament_index_cpp/get_package_share_directory.hpp>
 
 class FisheyeStitcherNode : public rclcpp::Node {
@@ -24,10 +23,10 @@ public:
     }
 
     void init() {
-        it_ = std::make_shared<image_transport::ImageTransport>(shared_from_this());
-        sub_ = it_->subscribe("/image_raw", 1,
+        sub_ = this->create_subscription<sensor_msgs::msg::Image>(
+            "/image_raw", 1,
             std::bind(&FisheyeStitcherNode::imageCallback, this, std::placeholders::_1));
-        pub_ = it_->advertise("/image_stitched", 1);
+        pub_ = this->create_publisher<sensor_msgs::msg::Image>("/image_stitched", 1);
         RCLCPP_INFO(this->get_logger(), "Fisheye stitcher node initialized: /image_raw -> /image_stitched");
     }
 
@@ -51,13 +50,12 @@ public:
         out_msg.header = msg->header;
         out_msg.encoding = sensor_msgs::image_encodings::BGR8;
         out_msg.image = pano;
-        pub_.publish(out_msg.toImageMsg());
+        pub_->publish(*out_msg.toImageMsg());
     }
 
 private:
-    std::shared_ptr<image_transport::ImageTransport> it_;
-    image_transport::Subscriber sub_;
-    image_transport::Publisher pub_;
+    rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr sub_;
+    rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr pub_;
     std::unique_ptr<stitcher::FisheyeStitcher> Stitcher_;
 };
 
